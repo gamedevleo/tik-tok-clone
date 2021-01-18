@@ -1,23 +1,43 @@
-import logo from './logo.svg';
+import React,{useState,useEffect,useRef} from 'react';
 import './App.css';
+import {Video} from './components/Video';
+import db from './firebase';
 
 function App() {
+  const [videos,setVideos] = useState([]);
+  const [scrollTop,setScrollTop] = useState(1);
+  const videosRef = useRef(null);
+
+  useEffect(()=>{
+    db.collection('videos')
+    .onSnapshot(snapshot=>setVideos(snapshot.docs.map(doc=>doc.data())));
+  },[]);
+
+  useEffect(() => {
+  const interval = setInterval(() => {
+    setScrollTop(videosRef.current.scrollTop);
+    console.log(scrollTop);
+  }, 300);
+  return () => clearInterval(interval);
+}, [scrollTop]);
+
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
+    <div className="app">
+      <div className='app_videos' ref={videosRef}>
+          {videos?.map(
+            ({url,channel,description,song,likes,shares,messages})=>(
+              <Video
+                url={url}
+                song={song}
+                channel={channel}
+                description={description}
+                likes={likes}
+                messages={messages}
+                shares={shares}
+                scrollTop={scrollTop}
+                />
+            ))}
+      </div>
     </div>
   );
 }
